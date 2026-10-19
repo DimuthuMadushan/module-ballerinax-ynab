@@ -133,7 +133,7 @@ function testGetPlanMonth() returns error? {
 
 @test:Config {groups: ["live_tests", "mock_tests"]}
 function testGetTransactions() returns error? {
-    TransactionsResponse response = check ynab->getTransactions(planId, sinceDate = "2026-01-01");
+    TransactionsResponse response = check ynab->getTransactions(planId);
     test:assertTrue(response.data.transactions.length() > 0);
 }
 
@@ -150,6 +150,9 @@ function testCreateTransaction() returns error? {
 @test:Config {groups: ["live_tests", "mock_tests"]}
 function testGetTransactionById() returns error? {
     TransactionsResponse transactions = check ynab->getTransactions(planId);
+    if transactions.data.transactions.length() == 0 {
+        test:assertFail("No transactions found in the plan to fetch by id");
+    }
     string transactionId = transactions.data.transactions[0].id;
     TransactionResponse response = check ynab->getTransactionById(planId, transactionId);
     test:assertEquals(response.data.'transaction.id, transactionId);

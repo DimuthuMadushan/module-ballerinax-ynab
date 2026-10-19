@@ -4,12 +4,7 @@ This example lists the open accounts of a YNAB plan with their balances, summari
 
 ## Prerequisites
 
-- Ballerina Swan Lake 2201.x or later
-- Push the connector to the local repository:
-  ```bash
-  cd ballerina
-  bal pack && bal push --repository=local
-  ```
+- Ballerina Swan Lake 2201.12.0 or later
 - Create a `Config.toml` in this directory:
   ```toml
   accessToken = "<your-personal-access-token>"

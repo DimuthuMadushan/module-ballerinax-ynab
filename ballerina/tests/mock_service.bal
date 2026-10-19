@@ -372,7 +372,7 @@ service / on ep0 {
     # + payload - The payee to update
     # + return - The payee was successfully updated, or the request was invalid
     resource function patch plans/[string planId]/payees/[string payeeId](@http:Payload PatchPayeeWrapper payload) returns SavePayeeResponse|ErrorResponseBadRequest {
-        Payee payee = samplePayee(payeeId, payload.payee.name ?: "Corner Market");
+        Payee payee = samplePayee(payeeId, payload.payee?.name ?: "Corner Market");
         return {data: {serverKnowledge: 102, payee}};
     }
 
@@ -421,7 +421,7 @@ service / on ep0 {
         detail.dateFirst = payload.scheduledTransaction.date;
         detail.dateNext = payload.scheduledTransaction.date;
         detail.accountId = payload.scheduledTransaction.accountId;
-        int? amount = payload.scheduledTransaction.amount;
+        int? amount = payload.scheduledTransaction?.amount;
         if amount is int {
             detail.amount = amount;
         }
@@ -434,13 +434,13 @@ service / on ep0 {
     # + payload - The transaction or transactions to create
     # + return - The transactions were successfully created, a bad request, or a conflict
     resource function post plans/[string planId]/transactions(@http:Payload PostTransactionsWrapper payload) returns SaveTransactionsResponse|ErrorResponseBadRequest|ErrorResponseConflict {
-        NewTransaction? single = payload.'transaction;
-        if single is () && payload.transactions is () {
+        NewTransaction? single = payload?.'transaction;
+        if single is () && payload?.transactions is () {
             return badRequest("Either transaction or transactions must be provided");
         }
         TransactionDetail created = sampleTransaction("t1u2v3w4-0099-4e9f-8a3b-4c5d6e7f8091");
         if single is NewTransaction {
-            int? amount = single.amount;
+            int? amount = single?.amount;
             if amount is int {
                 created.amount = amount;
             }
@@ -456,7 +456,7 @@ service / on ep0 {
     # + return - The transaction was successfully updated, or the request was invalid
     resource function put plans/[string planId]/transactions/[string transactionId](@http:Payload PutTransactionWrapper payload) returns TransactionResponse|ErrorResponseBadRequest {
         TransactionDetail updated = sampleTransaction(transactionId);
-        int? amount = payload.'transaction.amount;
+        int? amount = payload.'transaction?.amount;
         if amount is int {
             updated.amount = amount;
         }

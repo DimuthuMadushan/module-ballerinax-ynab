@@ -16,6 +16,9 @@ configurable string date = ?;
 configurable boolean createExpense = false;
 
 public function main() returns error? {
+    if amount >= 0 {
+        return error(string `An expense amount must be negative, got ${amount}`);
+    }
     ynab:Client ynabClient = check new ({auth: {token: accessToken}});
 
     // Step 1: Resolve the account the expense is charged to.
@@ -23,24 +26,21 @@ public function main() returns error? {
     ynab:Account[] matchingAccounts = from ynab:Account account in accounts.data.accounts
         where account.name == accountName && !account.closed && !account.deleted
         select account;
-    if matchingAccounts.length() == 0 {
-        return error(string `No open account named ${accountName} was found`);
+    if matchingAccounts.length() != 1 {
+        return error(string `Expected exactly one open account named ${accountName}, found ${matchingAccounts.length()}`);
     }
     string accountId = matchingAccounts[0].id;
 
     // Step 2: Resolve the budget category.
     ynab:CategoriesResponse categories = check ynabClient->getCategories(planId);
-    string? categoryId = ();
-    foreach ynab:CategoryGroupWithCategories group in categories.data.categoryGroups {
-        foreach ynab:Category category in group.categories {
-            if category.name == categoryName && !category.deleted {
-                categoryId = category.id;
-            }
-        }
+    string[] categoryIds = from ynab:CategoryGroupWithCategories group in categories.data.categoryGroups
+        from ynab:Category category in group.categories
+        where category.name == categoryName && !category.deleted
+        select category.id;
+    if categoryIds.length() != 1 {
+        return error(string `Expected exactly one category named ${categoryName}, found ${categoryIds.length()}`);
     }
-    if categoryId is () {
-        return error(string `No category named ${categoryName} was found`);
-    }
+    string categoryId = categoryIds[0];
 
     // Step 3: Record the expense, only when explicitly enabled.
     if createExpense {
